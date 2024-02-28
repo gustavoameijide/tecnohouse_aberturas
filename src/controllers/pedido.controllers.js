@@ -183,45 +183,6 @@ export const editarPresupuestoProducto = async (req, res) => {
   }
 };
 
-// export const obtenerValorUnico = async (req, res) => {
-//   const productId = req.params.id;
-
-//   try {
-//     // Obtener los datos JSONB actuales de la base de datos
-//     const result = await pool.query(
-//       "SELECT productos FROM pedido WHERE (productos->'respuesta')::jsonb @> $1",
-//       [`[{"id": ${productId}}]`]
-//     );
-
-//     if (result.rows.length === 0) {
-//       return res.status(404).json({
-//         message: "No existe ningún producto con ese id",
-//       });
-//     }
-
-//     const existingJson = result.rows[0].productos;
-
-//     // En este ejemplo, asumiré que deseas obtener el valor del campo "nombre"
-//     const fieldValue = existingJson.respuesta[0];
-
-//     if (!fieldValue) {
-//       return res.status(404).json({
-//         message: "No existe ningún valor para el campo especificado",
-//       });
-//     }
-
-//     // Devolver el valor específico
-//     return res.json({
-//       valorUnico: fieldValue,
-//     });
-//   } catch (error) {
-//     console.error("Error durante la operación de obtención del valor:", error);
-//     return res.status(500).json({
-//       message: "Error interno del servidor",
-//       error: error.message,
-//     });
-//   }
-// };
 export const obtenerValorUnico = async (req, res) => {
   const productId = req.params.id;
 
@@ -263,56 +224,6 @@ export const obtenerValorUnico = async (req, res) => {
     });
   }
 };
-
-// export const CrearProducto = async (req, res) => {
-//   const tableId = req.params.id;
-//   const nuevoProducto = req.body.nuevoProducto;
-
-//   try {
-//     // Obtener los datos JSONB actuales de la base de datos
-//     const result = await pool.query(
-//       "SELECT productos FROM pedido WHERE id = $1",
-//       [tableId]
-//     );
-
-//     if (result.rows.length === 0) {
-//       return res.status(404).json({
-//         message: "No existe ningún registro con ese id de tabla",
-//       });
-//     }
-
-//     const existingJson = result.rows[0].productos;
-
-//     // Verificar que el nuevo producto sea un objeto válido
-//     if (!nuevoProducto || typeof nuevoProducto !== "object") {
-//       return res.status(400).json({
-//         message: "El nuevo producto no es un objeto válido",
-//         nuevoProducto: nuevoProducto,
-//       });
-//     }
-
-//     // Agregar el nuevo producto al array existente
-//     const updatedProductos = {
-//       respuesta: [...(existingJson.respuesta || []), nuevoProducto],
-//     };
-
-//     // Actualizar la base de datos con el JSON modificado
-//     const updateQuery =
-//       "UPDATE pedido SET productos = $1::jsonb WHERE id = $2 RETURNING *";
-
-//     await pool.query(updateQuery, [updatedProductos, tableId]);
-
-//     return res.json({
-//       message: "Producto agregado exitosamente al registro existente",
-//     });
-//   } catch (error) {
-//     console.error("Error durante la operación de creación de producto:", error);
-//     return res.status(500).json({
-//       message: "Error interno del servidor",
-//       error: error.message,
-//     });
-//   }
-// };
 
 export const CrearProducto = async (req, res) => {
   const tableId = req.params.id;
@@ -368,5 +279,21 @@ export const CrearProducto = async (req, res) => {
       message: "Error interno del servidor",
       error: error.message,
     });
+  }
+};
+
+export const getPedidoMesActual = async (req, res, next) => {
+  const userId = req.params.userId; // Assuming userId is a parameter in the request
+
+  try {
+    const result = await pool.query(
+      "SELECT * FROM pedido WHERE DATE_TRUNC('month', created_at) = DATE_TRUNC('month', CURRENT_DATE) AND user_id = $1",
+      [userId]
+    );
+
+    return res.json(result.rows);
+  } catch (error) {
+    console.error("Error al obtener ingresos:", error);
+    return res.status(500).json({ message: "Error interno del servidor" });
   }
 };

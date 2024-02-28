@@ -10,6 +10,7 @@ import {
   obtenerValorUnico,
   CrearProducto,
   actualizarRemito,
+  getPedidoMesActual,
 } from "../controllers/pedido.controllers.js";
 import { isAuth } from "../middlewares/auth.middleware.js";
 // import { validateSchema } from "../middlewares/validate.middleware.js";
@@ -41,5 +42,7 @@ router.delete("/pedido/:id", isAuth, eliminarPresupuesto);
 router.get("/pedido-unico/:id", isAuth, obtenerValorUnico);
 
 router.post("/:id/pedido-create", isAuth, CrearProducto);
+
+router.get("/pedido-mensual", isAuth, getPedidoMesActual);
 
 export default router;
