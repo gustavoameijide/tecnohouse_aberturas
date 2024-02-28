@@ -283,12 +283,9 @@ export const CrearProducto = async (req, res) => {
 };
 
 export const getPedidoMesActual = async (req, res, next) => {
-  const userId = req.params.userId; // Assuming userId is a parameter in the request
-
   try {
     const result = await pool.query(
-      "SELECT * FROM pedido WHERE DATE_TRUNC('month', created_at) = DATE_TRUNC('month', CURRENT_DATE) AND user_id = $1",
-      [userId]
+      "SELECT * FROM pedido WHERE DATE_TRUNC('month', created_at) = DATE_TRUNC('month', CURRENT_DATE)"
     );
 
     return res.json(result.rows);
