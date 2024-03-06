@@ -294,3 +294,67 @@ export const getPedidoMesActual = async (req, res, next) => {
     return res.status(500).json({ message: "Error interno del servidor" });
   }
 };
+
+export const CrearProductos = async (req, res) => {
+  const tableId = req.params.id;
+  const nuevosProductos = req.body;
+
+  try {
+    // Obtener los datos JSONB actuales de la base de datos
+    const result = await pool.query(
+      "SELECT productos FROM pedido WHERE id = $1",
+      [tableId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        message: "No existe ningún registro con ese id de tabla",
+      });
+    }
+
+    const existingJson = result.rows[0].productos;
+
+    // Verificar que la lista de nuevos productos sea un array válido
+    if (!nuevosProductos || !Array.isArray(nuevosProductos)) {
+      return res.status(400).json({
+        message: "La lista de nuevos productos no es un array válido",
+        nuevosProductos: nuevosProductos,
+      });
+    }
+
+    // Generar IDs aleatorios para cada nuevo producto
+    const nuevosIds = nuevosProductos.map(
+      () => Math.floor(Math.random() * 1000000) + 1
+    );
+
+    // Agregar los nuevos productos al array existente con los IDs generados
+    existingJson.respuesta = existingJson.respuesta || [];
+    nuevosProductos.forEach((nuevoProducto, index) => {
+      nuevoProducto.id = nuevosIds[index];
+      existingJson.respuesta.push(nuevoProducto);
+    });
+
+    // Actualizar la base de datos con el JSON modificado
+    const updateQuery =
+      "UPDATE pedido SET productos = $1::jsonb WHERE id = $2 RETURNING *";
+
+    const updatedResult = await pool.query(updateQuery, [
+      { respuesta: existingJson.respuesta },
+      tableId,
+    ]);
+
+    return res.json({
+      message: "Productos agregados exitosamente al registro existente",
+      updatedResult: updatedResult.rows[0],
+    });
+  } catch (error) {
+    console.error(
+      "Error durante la operación de creación de productos:",
+      error
+    );
+    return res.status(500).json({
+      message: "Error interno del servidor",
+      error: error.message,
+    });
+  }
+};
