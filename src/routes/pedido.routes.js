@@ -12,6 +12,7 @@ import {
   actualizarRemito,
   getPedidoMesActual,
   CrearProductos,
+  getPedidoPorRangoDeFechas,
 } from "../controllers/pedido.controllers.js";
 import { isAuth } from "../middlewares/auth.middleware.js";
 // import { validateSchema } from "../middlewares/validate.middleware.js";
@@ -45,6 +46,8 @@ router.get("/pedido-unico/:id", isAuth, obtenerValorUnico);
 router.post("/:id/pedido-create", isAuth, CrearProducto);
 
 router.post("/pedido/:id/crear-productos", isAuth, CrearProductos);
+
+router.post("/pedido/rango-fechas", isAuth, getPedidoPorRangoDeFechas);
 
 router.get("/pedido-mensual", isAuth, getPedidoMesActual);
 
