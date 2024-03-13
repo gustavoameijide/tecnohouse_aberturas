@@ -24,12 +24,31 @@ export const getAccesorio = async (req, res) => {
 };
 
 export const createAccesorio = async (req, res, next) => {
-  const { nombre, color, descripcion, categoria, stock } = req.body;
+  const {
+    nombre,
+    color,
+    descripcion,
+    categoria,
+    stock,
+    stock_minimo,
+    entrada,
+    salida,
+  } = req.body;
 
   try {
     const result = await pool.query(
-      "INSERT INTO accesorios (nombre, color ,descripcion, categoria,stock,user_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-      [nombre, color, descripcion, categoria, stock, req.userId]
+      "INSERT INTO accesorios (nombre, color ,descripcion, categoria,stock,stock_minimo, entrada,salida,user_id) VALUES ($1, $2, $3, $4, $5, $6,$7,$8,$9) RETURNING *",
+      [
+        nombre,
+        color,
+        descripcion,
+        categoria,
+        stock,
+        stock_minimo,
+        entrada,
+        salida,
+        req.userId,
+      ]
     );
 
     res.json(result.rows[0]);
@@ -45,11 +64,30 @@ export const createAccesorio = async (req, res, next) => {
 
 export const actualizarAccesorio = async (req, res) => {
   const id = req.params.id;
-  const { nombre, color, descripcion, categoria, stock } = req.body;
+  const {
+    nombre,
+    color,
+    descripcion,
+    categoria,
+    stock,
+    stock_minimo,
+    entrada,
+    salida,
+  } = req.body;
 
   const result = await pool.query(
-    "UPDATE accesorios SET nombre = $1, color = $2 ,stock = $3, categoria = $4, descripcion = $5 WHERE id = $6",
-    [nombre, color, stock, categoria, descripcion, id]
+    "UPDATE accesorios SET nombre = $1, color = $2 ,stock = $3, categoria = $4, descripcion = $5,stock_minimo = $6, entrada = $7, salida = $8 WHERE id = $9",
+    [
+      nombre,
+      color,
+      stock,
+      categoria,
+      descripcion,
+      stock_minimo,
+      entrada,
+      salida,
+      id,
+    ]
   );
 
   if (result.rowCount === 0) {
