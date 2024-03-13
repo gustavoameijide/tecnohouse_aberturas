@@ -5,6 +5,10 @@ import {
   eliminarAccesorio,
   getAccesorio,
   getAccesorios,
+  createNuevaEntrada,
+  createNuevaSalida,
+  getEntradaPorRangoDeFechas,
+  getSalidasPorRangoDeFechas,
 } from "../controllers/accesorios.controllers.js";
 import { isAuth } from "../middlewares/auth.middleware.js";
 import { validateSchema } from "../middlewares/validate.middleware.js";
@@ -26,6 +30,9 @@ router.post(
   createAccesorio
 );
 
+router.post("/nueva-entrada", isAuth, createNuevaEntrada);
+router.post("/nueva-salida", isAuth, createNuevaSalida);
+
 router.put(
   "/accesorios/:id",
   isAuth,
@@ -34,5 +41,8 @@ router.put(
 );
 
 router.delete("/accesorios/:id", isAuth, eliminarAccesorio);
+
+router.post("/entrada/rango-fechas", isAuth, getEntradaPorRangoDeFechas);
+router.post("/salidas/rango-fechas", isAuth, getSalidasPorRangoDeFechas);
 
 export default router;
