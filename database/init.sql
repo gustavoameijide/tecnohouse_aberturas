@@ -2,6 +2,8 @@ CREATE TABLE entradas(
     id SERIAL PRIMARY KEY,
     codigo VARCHAR(255) UNIQUE NOT NULL,
     detalle VARCHAR(255),
+    ancho VARCHAR(255),
+    alto VARCHAR(255),
     ingreso NUMBER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

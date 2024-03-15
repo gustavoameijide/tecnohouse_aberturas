@@ -78,3 +78,143 @@ export const eliminarPerfil = async (req, res) => {
 
   return res.sendStatus(204);
 };
+
+export const createNuevaEntrada = async (req, res, next) => {
+  const { codigo, detalle, ancho, alto, ingreso } = req.body;
+
+  try {
+    // Start a transaction
+    await pool.query("BEGIN");
+
+    // Insert new entry into entradas table
+    const entradaResult = await pool.query(
+      "INSERT INTO entradasdos (codigo, detalle, ancho, alto, ingreso) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+      [codigo, detalle, ancho, alto, ingreso]
+    );
+
+    // Update stock and entrada in accesorios table
+    const updateResult = await pool.query(
+      "UPDATE productos SET stock = stock + $1 WHERE nombre = $2",
+      [ingreso, codigo]
+    );
+
+    // Commit the transaction
+    await pool.query("COMMIT");
+
+    res.json(entradaResult.rows[0]);
+  } catch (error) {
+    // Rollback the transaction in case of error
+    await pool.query("ROLLBACK");
+
+    next(error);
+  }
+};
+
+export const createNuevaSalida = async (req, res, next) => {
+  const { codigo, detalle, total, ancho, alto, cliente, sucursal, categoria } =
+    req.body;
+
+  try {
+    // Start a transaction
+    await pool.query("BEGIN");
+
+    // Check if there's sufficient stock
+    const stockCheckResult = await pool.query(
+      "SELECT stock FROM productos WHERE nombre = $1",
+      [codigo]
+    );
+
+    const currentStock = stockCheckResult.rows[0].stock;
+    if (currentStock < total) {
+      throw new Error("Insuficente stock - selecciona una cantidad menor");
+    }
+
+    // Insert new entry into salidas table
+    const salidaResult = await pool.query(
+      "INSERT INTO salidasdos (codigo, detalle, ancho, alto, cliente, sucursal,categoria, total) VALUES ($1, $2, $3, $4, $5, $6,$7,$8) RETURNING *",
+      [codigo, detalle, ancho, alto, cliente, sucursal, categoria, total]
+    );
+
+    // Update stock and salida in accesorios table
+    const updateResult = await pool.query(
+      "UPDATE productos SET stock = stock - $1 WHERE nombre = $2",
+      [total, codigo]
+    );
+
+    // Commit the transaction
+    await pool.query("COMMIT");
+
+    res.json(salidaResult.rows[0]);
+  } catch (error) {
+    // Rollback the transaction in case of error
+    await pool.query("ROLLBACK");
+
+    next(error);
+  }
+};
+
+export const getEntradaPorRangoDeFechas = async (req, res, next) => {
+  try {
+    const { fechaInicio, fechaFin } = req.body;
+
+    // Validación de fechas
+    if (
+      !fechaInicio ||
+      !fechaFin ||
+      !isValidDate(fechaInicio) ||
+      !isValidDate(fechaFin)
+    ) {
+      return res.status(400).json({ message: "Fechas inválidas" });
+    }
+
+    // Función de validación de fecha
+    function isValidDate(dateString) {
+      const regex = /^\d{4}-\d{2}-\d{2}$/;
+      return dateString.match(regex) !== null;
+    }
+
+    // Ajuste de zona horaria UTC
+    const result = await pool.query(
+      "SELECT * FROM entradasdos WHERE created_at BETWEEN $1 AND $2 ORDER BY created_at",
+      [fechaInicio, fechaFin]
+    );
+
+    return res.json(result.rows);
+  } catch (error) {
+    console.error("Error al obtener pedidos:", error);
+    return res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
+
+export const getSalidasPorRangoDeFechas = async (req, res, next) => {
+  try {
+    const { fechaInicio, fechaFin } = req.body;
+
+    // Validación de fechas
+    if (
+      !fechaInicio ||
+      !fechaFin ||
+      !isValidDate(fechaInicio) ||
+      !isValidDate(fechaFin)
+    ) {
+      return res.status(400).json({ message: "Fechas inválidas" });
+    }
+
+    // Función de validación de fecha
+    function isValidDate(dateString) {
+      const regex = /^\d{4}-\d{2}-\d{2}$/;
+      return dateString.match(regex) !== null;
+    }
+
+    // Ajuste de zona horaria UTC
+    const result = await pool.query(
+      "SELECT * FROM salidasdos WHERE created_at BETWEEN $1 AND $2 ORDER BY created_at",
+      [fechaInicio, fechaFin]
+    );
+
+    return res.json(result.rows);
+  } catch (error) {
+    console.error("Error al obtener pedidos:", error);
+    return res.status(500).json({ message: "Error interno del servidor" });
+  }
+};

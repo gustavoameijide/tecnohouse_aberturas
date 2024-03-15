@@ -1,10 +1,14 @@
 import Router from "express-promise-router";
 import {
   actualizarPerfil,
+  createNuevaEntrada,
+  createNuevaSalida,
   createPerfil,
   eliminarPerfil,
+  getEntradaPorRangoDeFechas,
   getPerfil,
   getPerfiles,
+  getSalidasPorRangoDeFechas,
 } from "../controllers/productos.controllers.js";
 import { isAuth } from "../middlewares/auth.middleware.js";
 import { validateSchema } from "../middlewares/validate.middleware.js";
@@ -34,5 +38,11 @@ router.put(
 );
 
 router.delete("/productos/:id", isAuth, eliminarPerfil);
+
+router.post("/entrada-dos/rango-fechas", isAuth, getEntradaPorRangoDeFechas);
+router.post("/salidas-dos/rango-fechas", isAuth, getSalidasPorRangoDeFechas);
+
+router.post("/nueva-entrada-dos", isAuth, createNuevaEntrada);
+router.post("/nueva-salida-dos", isAuth, createNuevaSalida);
 
 export default router;
