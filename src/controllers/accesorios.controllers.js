@@ -172,6 +172,53 @@ export const createNuevaEntrada = async (req, res, next) => {
   }
 };
 
+// export const createNuevaSalida = async (req, res, next) => {
+//   const { codigo, detalle, total } = req.body;
+
+//   try {
+//     // Start a transaction
+//     await pool.query("BEGIN");
+
+//     // Check if there's sufficient stock
+//     const stockCheckResult = await pool.query(
+//       "SELECT stock FROM accesorios WHERE nombre = $1",
+//       [codigo]
+//     );
+
+//     // const currentStock = stockCheckResult.rows[0].stock;
+//     // if (currentStock < total) {
+//     //   throw new Error("Insuficente stock - selecciona una cantidad menor");
+//     // }
+
+//     const currentStock = stockCheckResult.rows[0].stock;
+//     if (currentStock < total) {
+//       throw new Error("Insuficiente stock - selecciona una cantidad menor");
+//     }
+
+//     // Insert new entry into salidas table
+//     const salidaResult = await pool.query(
+//       "INSERT INTO salidas (codigo, detalle, total) VALUES ($1, $2, $3) RETURNING *",
+//       [codigo, detalle, total]
+//     );
+
+//     // Update stock and salida in accesorios table
+//     const updateResult = await pool.query(
+//       "UPDATE accesorios SET stock = stock - $1, salida = salida + $1 WHERE nombre = $2",
+//       [total, codigo]
+//     );
+
+//     // Commit the transaction
+//     await pool.query("COMMIT");
+
+//     res.json(salidaResult.rows[0]);
+//   } catch (error) {
+//     // Rollback the transaction in case of error
+//     await pool.query("ROLLBACK");
+
+//     next(error);
+//   }
+// };
+
 export const createNuevaSalida = async (req, res, next) => {
   const { codigo, detalle, total } = req.body;
 
@@ -185,21 +232,23 @@ export const createNuevaSalida = async (req, res, next) => {
       [codigo]
     );
 
-    const currentStock = stockCheckResult.rows[0].stock;
-    if (currentStock < total) {
-      throw new Error("Insuficente stock - selecciona una cantidad menor");
+    const currentStock = parseFloat(stockCheckResult.rows[0].stock);
+    const totalRequested = parseFloat(total);
+
+    if (currentStock < totalRequested) {
+      throw new Error("Insuficiente stock - selecciona una cantidad menor");
     }
 
     // Insert new entry into salidas table
     const salidaResult = await pool.query(
       "INSERT INTO salidas (codigo, detalle, total) VALUES ($1, $2, $3) RETURNING *",
-      [codigo, detalle, total]
+      [codigo, detalle, totalRequested]
     );
 
     // Update stock and salida in accesorios table
     const updateResult = await pool.query(
       "UPDATE accesorios SET stock = stock - $1, salida = salida + $1 WHERE nombre = $2",
-      [total, codigo]
+      [totalRequested, codigo]
     );
 
     // Commit the transaction
