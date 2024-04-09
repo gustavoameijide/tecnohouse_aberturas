@@ -51,7 +51,7 @@ export const createAccesorio = async (req, res, next) => {
   } catch (error) {
     if (error.code === "23505") {
       return res.status(409).json({
-        message: "Ya existe un accesorio con ese nombre",
+        message: "Ya existe un accesorio con ese codigo pon otro codigo",
       });
     }
     next(error);
@@ -172,52 +172,18 @@ export const createNuevaEntrada = async (req, res, next) => {
   }
 };
 
-// export const createNuevaSalida = async (req, res, next) => {
-//   const { codigo, detalle, total } = req.body;
+export const getEntradasMensualesActual = async (req, res, next) => {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM entradas WHERE DATE_TRUNC('month', created_at) = DATE_TRUNC('month', CURRENT_DATE)"
+    );
 
-//   try {
-//     // Start a transaction
-//     await pool.query("BEGIN");
-
-//     // Check if there's sufficient stock
-//     const stockCheckResult = await pool.query(
-//       "SELECT stock FROM accesorios WHERE nombre = $1",
-//       [codigo]
-//     );
-
-//     // const currentStock = stockCheckResult.rows[0].stock;
-//     // if (currentStock < total) {
-//     //   throw new Error("Insuficente stock - selecciona una cantidad menor");
-//     // }
-
-//     const currentStock = stockCheckResult.rows[0].stock;
-//     if (currentStock < total) {
-//       throw new Error("Insuficiente stock - selecciona una cantidad menor");
-//     }
-
-//     // Insert new entry into salidas table
-//     const salidaResult = await pool.query(
-//       "INSERT INTO salidas (codigo, detalle, total) VALUES ($1, $2, $3) RETURNING *",
-//       [codigo, detalle, total]
-//     );
-
-//     // Update stock and salida in accesorios table
-//     const updateResult = await pool.query(
-//       "UPDATE accesorios SET stock = stock - $1, salida = salida + $1 WHERE nombre = $2",
-//       [total, codigo]
-//     );
-
-//     // Commit the transaction
-//     await pool.query("COMMIT");
-
-//     res.json(salidaResult.rows[0]);
-//   } catch (error) {
-//     // Rollback the transaction in case of error
-//     await pool.query("ROLLBACK");
-
-//     next(error);
-//   }
-// };
+    return res.json(result.rows);
+  } catch (error) {
+    console.error("Error al obtener:", error);
+    return res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
 
 export const createNuevaSalida = async (req, res, next) => {
   const { codigo, detalle, total } = req.body;
@@ -325,6 +291,19 @@ export const getSalidasPorRangoDeFechas = async (req, res, next) => {
     return res.json(result.rows);
   } catch (error) {
     console.error("Error al obtener pedidos:", error);
+    return res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
+
+export const getSalidasMensualesActual = async (req, res, next) => {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM salidas WHERE DATE_TRUNC('month', created_at) = DATE_TRUNC('month', CURRENT_DATE)"
+    );
+
+    return res.json(result.rows);
+  } catch (error) {
+    console.error("Error al obtener:", error);
     return res.status(500).json({ message: "Error interno del servidor" });
   }
 };

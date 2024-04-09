@@ -9,6 +9,8 @@ import {
   createNuevaSalida,
   getEntradaPorRangoDeFechas,
   getSalidasPorRangoDeFechas,
+  getEntradasMensualesActual,
+  getSalidasMensualesActual,
 } from "../controllers/accesorios.controllers.js";
 import { isAuth } from "../middlewares/auth.middleware.js";
 import { validateSchema } from "../middlewares/validate.middleware.js";
@@ -33,6 +35,8 @@ router.post(
 router.post("/nueva-entrada", isAuth, createNuevaEntrada);
 router.post("/nueva-salida", isAuth, createNuevaSalida);
 
+router.post("/accesorios-entradas-mes", isAuth, getEntradasMensualesActual);
+
 router.put(
   "/accesorios/:id",
   isAuth,
@@ -44,5 +48,6 @@ router.delete("/accesorios/:id", isAuth, eliminarAccesorio);
 
 router.post("/entrada/rango-fechas", isAuth, getEntradaPorRangoDeFechas);
 router.post("/salidas/rango-fechas", isAuth, getSalidasPorRangoDeFechas);
+router.post("/salidas-entradas-mes", isAuth, getSalidasMensualesActual);
 
 export default router;
