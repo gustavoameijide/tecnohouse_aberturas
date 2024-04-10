@@ -13,6 +13,7 @@ import {
   getPedidoMesActual,
   CrearProductos,
   getPedidoPorRangoDeFechas,
+  editarPresupuestoProductoEstado,
 } from "../controllers/pedido.controllers.js";
 import { isAuth } from "../middlewares/auth.middleware.js";
 
@@ -34,6 +35,8 @@ router.put("/pedido/:id", isAuth, actualizarPresupuesto);
 router.delete("/pedido-delete/:id", isAuth, eliminarPresupuestoProducto);
 
 router.put("/pedido-edit/:id", isAuth, editarPresupuestoProducto);
+
+router.put("/pedido-edit-two/:id", isAuth, editarPresupuestoProductoEstado);
 
 router.put("/remito-edit/:id", isAuth, actualizarRemito);
 

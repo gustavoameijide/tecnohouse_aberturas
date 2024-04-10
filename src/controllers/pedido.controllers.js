@@ -183,6 +183,57 @@ export const editarPresupuestoProducto = async (req, res) => {
   }
 };
 
+export const editarPresupuestoProductoEstado = async (req, res) => {
+  const productIdToEdit = req.params.id;
+  const updatedProductData = req.body;
+
+  try {
+    // Obtener los datos JSONB actuales de la base de datos
+    const result = await pool.query(
+      "SELECT productos FROM pedido WHERE (productos->'respuesta')::jsonb @> $1",
+      [`[{"id": ${productIdToEdit}}]`]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        message: "No existe ningún producto con ese id",
+      });
+    }
+
+    const existingJson = result.rows[0].productos;
+
+    // Encuentra el producto específico dentro del JSON
+    const updatedProductos = existingJson.respuesta.map((item) => {
+      if (item.id === parseInt(productIdToEdit)) {
+        // Comprobar si la cantidad faltante es mayor que la nueva cantidad
+        if (updatedProductData.cantidadFaltante > updatedProductData.cantidad) {
+          return res.status(400).json({
+            message:
+              "La cantidad faltante no puede ser mayor que la cantidad total",
+          });
+        }
+
+        return { ...item, ...updatedProductData };
+      }
+      return item;
+    });
+
+    // Actualizar la base de datos con el JSON modificado
+    await pool.query(
+      "UPDATE pedido SET productos = $1 WHERE (productos->'respuesta')::jsonb @> $2",
+      [{ respuesta: updatedProductos }, `[{ "id": ${productIdToEdit} }]`]
+    );
+
+    return res.sendStatus(204);
+  } catch (error) {
+    console.error("Error durante la operación de edición:", error);
+    return res.status(500).json({
+      message: "Error interno del servidor",
+      error: error.message,
+    });
+  }
+};
+
 export const obtenerValorUnico = async (req, res) => {
   const productId = req.params.id;
 
@@ -285,7 +336,7 @@ export const CrearProducto = async (req, res) => {
 export const getPedidoMesActual = async (req, res, next) => {
   try {
     const result = await pool.query(
-      "SELECT * FROM pedido WHERE DATE_TRUNC('month', created_at) = DATE_TRUNC('month', CURRENT_DATE)"
+      "SELECT * FROM pedido WHERE (created_at >= DATE_TRUNC('month', CURRENT_DATE - INTERVAL '5 days') AND created_at < DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '5 days') OR (DATE_TRUNC('month', created_at) = DATE_TRUNC('month', CURRENT_DATE))"
     );
 
     return res.json(result.rows);
