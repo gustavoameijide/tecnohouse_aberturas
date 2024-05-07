@@ -80,7 +80,7 @@ export const eliminarPerfil = async (req, res) => {
 };
 
 export const createNuevaEntrada = async (req, res, next) => {
-  const { codigo, detalle, ancho, alto, ingreso } = req.body;
+  const { codigo, detalle, ancho, alto, stock } = req.body;
 
   try {
     // Start a transaction
@@ -88,14 +88,14 @@ export const createNuevaEntrada = async (req, res, next) => {
 
     // Insert new entry into entradas table
     const entradaResult = await pool.query(
-      "INSERT INTO entradasdos (codigo, detalle, ancho, alto, ingreso) VALUES ($1, $2, $3, $4, $5) RETURNING *",
-      [codigo, detalle, ancho, alto, ingreso]
+      "INSERT INTO entradasdos (codigo, detalle, ancho, alto, stock) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+      [codigo, detalle, ancho, alto, stock]
     );
 
     // Update stock and entrada in accesorios table
     const updateResult = await pool.query(
       "UPDATE productos SET stock = stock + $1 WHERE nombre = $2",
-      [ingreso, codigo]
+      [stock, codigo]
     );
 
     // Commit the transaction
@@ -107,6 +107,19 @@ export const createNuevaEntrada = async (req, res, next) => {
     await pool.query("ROLLBACK");
 
     next(error);
+  }
+};
+
+export const getEntradasMesActual = async (req, res, next) => {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM entradasdos WHERE (created_at >= DATE_TRUNC('month', CURRENT_DATE - INTERVAL '5 days') AND created_at < DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '5 days') OR (DATE_TRUNC('month', created_at) = DATE_TRUNC('month', CURRENT_DATE))"
+    );
+
+    return res.json(result.rows);
+  } catch (error) {
+    console.error("Error al obtener pedidos:", error);
+    return res.status(500).json({ message: "Error interno del servidor" });
   }
 };
 

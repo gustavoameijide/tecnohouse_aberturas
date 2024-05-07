@@ -6,6 +6,7 @@ import {
   createPerfil,
   eliminarPerfil,
   getEntradaPorRangoDeFechas,
+  getEntradasMesActual,
   getPerfil,
   getPerfiles,
   getSalidasPorRangoDeFechas,
@@ -40,6 +41,9 @@ router.put(
 router.delete("/productos/:id", isAuth, eliminarPerfil);
 
 router.post("/entrada-dos/rango-fechas", isAuth, getEntradaPorRangoDeFechas);
+
+router.get("/entrada-dos-mensuales", isAuth, getEntradasMesActual);
+
 router.post("/salidas-dos/rango-fechas", isAuth, getSalidasPorRangoDeFechas);
 
 router.post("/nueva-entrada-dos", isAuth, createNuevaEntrada);
