@@ -47,6 +47,7 @@ router.get("/entrada-dos-mensuales", isAuth, getEntradasMesActual);
 router.post("/salidas-dos/rango-fechas", isAuth, getSalidasPorRangoDeFechas);
 
 router.post("/nueva-entrada-dos", isAuth, createNuevaEntrada);
+
 router.post("/nueva-salida-dos", isAuth, createNuevaSalida);
 
 export default router;
