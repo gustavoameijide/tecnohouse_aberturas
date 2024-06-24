@@ -28,12 +28,14 @@ export const createPresupuesto = async (req, res, next) => {
   const { cliente, productos, detalle, remito } = req.body;
 
   try {
-    const result = await pool.query(
+    await pool.query(
       "INSERT INTO pedido (cliente, productos, detalle, remito, user_id) VALUES ($1, $2, $3, $4, $5) RETURNING *",
       [cliente, productos, detalle, remito, req.userId]
     );
 
-    res.json(result.rows[0]);
+    const todosLosPedidos = await pool.query("SELECT * FROM pedido");
+
+    res.json(todosLosPedidos.rows);
   } catch (error) {
     if (error.code === "23505") {
       return res.status(409).json({
@@ -60,9 +62,9 @@ export const actualizarPresupuesto = async (req, res) => {
     });
   }
 
-  return res.json({
-    message: "Presupuesto actualizado",
-  });
+  const todosLosPedidos = await pool.query("SELECT * FROM pedido");
+
+  res.json(todosLosPedidos.rows);
 };
 
 export const actualizarRemito = async (req, res) => {
@@ -87,17 +89,30 @@ export const actualizarRemito = async (req, res) => {
 
 //actualizar eliminar
 export const eliminarPresupuesto = async (req, res) => {
-  const result = await pool.query("DELETE FROM pedido WHERE id = $1", [
-    req.params.id,
-  ]);
+  try {
+    // Eliminar el pedido con el ID especificado
+    const result = await pool.query("DELETE FROM pedido WHERE id = $1", [
+      req.params.id,
+    ]);
 
-  if (result.rowCount === 0) {
-    return res.status(404).json({
-      message: "No existe ningun pedido con ese id",
+    // Verificar si se eliminó algún registro
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        message: "No existe ningún pedido con ese ID",
+      });
+    }
+
+    // Obtener todos los pedidos después de la eliminación
+    const todosLosPedidos = await pool.query("SELECT * FROM pedido");
+
+    // Devolver todas las filas como respuesta
+    res.json(todosLosPedidos.rows);
+  } catch (err) {
+    console.error("Error al eliminar el pedido:", err.message);
+    res.status(500).json({
+      message: "Error interno del servidor al eliminar el pedido",
     });
   }
-
-  return res.sendStatus(204);
 };
 
 //actualizar eliminar

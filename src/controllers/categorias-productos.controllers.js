@@ -28,12 +28,16 @@ export const createCategoria = async (req, res, next) => {
   const { categoria } = req.body;
 
   try {
-    const result = await pool.query(
+    await pool.query(
       "INSERT INTO categoriasProductos (categoria,user_id) VALUES ($1, $2) RETURNING *",
       [categoria, req.userId]
     );
 
-    res.json(result.rows[0]);
+    const todasLasCategorias = await pool.query(
+      "SELECT * FROM categoriasProductos"
+    );
+
+    res.json(todasLasCategorias.rows);
   } catch (error) {
     if (error.code === "23505") {
       return res.status(409).json({
@@ -59,9 +63,11 @@ export const actualizarCategoria = async (req, res) => {
     });
   }
 
-  return res.json({
-    message: "Categoria actualizada",
-  });
+  const todasLasCategorias = await pool.query(
+    "SELECT * FROM categoriasProductos"
+  );
+
+  res.json(todasLasCategorias.rows);
 };
 
 export const eliminarCategoria = async (req, res) => {
@@ -76,5 +82,9 @@ export const eliminarCategoria = async (req, res) => {
     });
   }
 
-  return res.sendStatus(204);
+  const todasLasCategorias = await pool.query(
+    "SELECT * FROM categoriasProductos"
+  );
+
+  res.json(todasLasCategorias.rows);
 };

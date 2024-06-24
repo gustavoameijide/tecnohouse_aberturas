@@ -28,12 +28,14 @@ export const crearColores = async (req, res, next) => {
   const { color } = req.body;
 
   try {
-    const result = await pool.query(
+    await pool.query(
       "INSERT INTO coloresPerfiles (color,user_id) VALUES ($1, $2) RETURNING *",
       [color, req.userId]
     );
 
-    res.json(result.rows[0]);
+    const todosLosColores = await pool.query("SELECT * FROM coloresPerfiles");
+
+    res.json(todosLosColores.rows);
   } catch (error) {
     if (error.code === "23505") {
       return res.status(409).json({
@@ -59,9 +61,9 @@ export const actualizarColores = async (req, res) => {
     });
   }
 
-  return res.json({
-    message: "Color actualizado",
-  });
+  const todosLosColores = await pool.query("SELECT * FROM coloresPerfiles");
+
+  res.json(todosLosColores.rows);
 };
 
 export const eliminarColor = async (req, res) => {
@@ -75,5 +77,7 @@ export const eliminarColor = async (req, res) => {
     });
   }
 
-  return res.sendStatus(204);
+  const todosLosColores = await pool.query("SELECT * FROM coloresPerfiles");
+
+  res.json(todosLosColores.rows);
 };

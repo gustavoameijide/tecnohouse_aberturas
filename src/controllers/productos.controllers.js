@@ -28,12 +28,14 @@ export const createPerfil = async (req, res, next) => {
     req.body;
 
   try {
-    const result = await pool.query(
+    await pool.query(
       "INSERT INTO productos (nombre, color ,descripcion, categoria,stock,ancho,alto,user_id) VALUES ($1, $2, $3, $4, $5, $6,$7,$8) RETURNING *",
       [nombre, color, descripcion, categoria, stock, ancho, alto, req.userId]
     );
 
-    res.json(result.rows[0]);
+    const todosLosProductos = await pool.query("SELECT * FROM productos");
+
+    res.json(todosLosProductos.rows);
   } catch (error) {
     if (error.code === "23505") {
       return res.status(409).json({
@@ -60,9 +62,9 @@ export const actualizarPerfil = async (req, res) => {
     });
   }
 
-  return res.json({
-    message: "Tarea actualizada",
-  });
+  const todosLosProductos = await pool.query("SELECT * FROM productos");
+
+  res.json(todosLosProductos.rows);
 };
 
 export const eliminarPerfil = async (req, res) => {
